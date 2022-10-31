@@ -1,4 +1,4 @@
-
+#NIC TU SAMEMU NIE NAPISAŁEM TO PO PROSTU ŁADNE NAKŁADKI DO GGPLOTA ZAPISANE JAKO FUNKCJE
 
 theme_Publication <- function(base_size=14, base_family="sans") {
       library(grid)
