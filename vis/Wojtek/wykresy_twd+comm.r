@@ -1,5 +1,5 @@
 setwd('C:/Users/wojte/OneDrive/Pulpit/TWD_CSV')
-
+source("themes.R")
 library(ggplot2)
 library(dplyr)
 library(forcats)
@@ -9,7 +9,7 @@ df <- read.csv('Clean_Merged_Data.csv')
 
 df2 <- read.csv('superbowl-ads.csv')
 
-df3 <- read.csv('halftime_musicians.csv')
+#df3 <- read.csv('halftime_musicians.csv')
 
 df4 <- read.csv('dataset.csv')
 
@@ -17,7 +17,7 @@ df5 <-read.csv('super_bowls.csv')
 
 df6 <- read.csv('tv.csv')
 
-df7 <- read.csv('super_bowl.csv')
+#df7 <- read.csv('super_bowl.csv')
 
 #Najczęstsi zwycięzcy i przegrani (best_teams przydaje się później)
 df %>%
@@ -31,7 +31,7 @@ df %>%
   group_by(Team) %>%
   summarise(n=n()) %>%
   arrange(-n) %>%
-  top_n(6) -> best_teams
+  top_n(4) -> best_teams
 
 
 #Gdzie odbywał się najczęściej (hala)
@@ -47,10 +47,10 @@ df2 %>%
   arrange(-n)
 
 #Najczęstsi MVP
-df7 %>%
-  group_by(MVP) %>%
-  summarise(n=n()) %>%
-  arrange(-n)
+# df7 %>%
+#   group_by(MVP) %>%
+#   summarise(n=n()) %>%
+#   arrange(-n)
 
 #Przygotowanie techniczne pod wykresy
 top_brands <- c("Bud Light", "Budweiser", "Doritos", "Pepsi", "Hyundai", "Coca-Cola", "Kia", "NFL")
@@ -58,14 +58,18 @@ options(scipen = 999)
 
 #Wykres oglądalności względem czasu (kolumnowy)
 df6 %>%
+  mutate(avg_us_viewers = ifelse(avg_us_viewers == 26750000, (26750000
++24430000), avg_us_viewers)) %>%
+  filter(avg_us_viewers != 24430000) %>%
   mutate(year = super_bowl + 1966, views = avg_us_viewers/1000000) %>%
   ggplot(aes(x=year, y=views)) +
-  labs(title = "Wykres liniowy ogl?dalno?ci Superbowl w USA",
-       subtitle = "Lata 1967-2018",
+  labs(title = "Średnia oglądalność Superbowl w USA na przestrzeni lat",
        x = "Rok",
-       y = "?rednia liczba ogl?daj?cych (w mln)")+
+       y = "Średnia liczba oglądających (w mln)")+
   scale_y_continuous(expand = c(0, 0), limits = c(0, 120)) +
-  geom_col()
+  scale_x_discrete(limits = c(1967, 1980, 1990, 2000,2010, 2018)) +
+  geom_col(fill='pink', color = "black") +
+  theme_dark_blue()
 
 #Najczęstsze reklamy (spośród 6-7 najpopularniejszych)
 df2 %>%
@@ -75,8 +79,10 @@ df2 %>%
   labs(title = "Histogram dla najpopularniejszych marek reklamowanych w ramach Superbowl",
        subtitle = "Lata 2000-2020",
        x = "Marka",
-       y = "Cz?sto??") +
-  geom_bar()
+       y = "Częstość") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 120)) +
+  geom_bar(color="black", fill="steelblue") +
+  theme_bw()
 
 #Cala ponizsza część to stworzenie brzydkiego wykresu
 #Pokazującego jak zmieniała się sumaryczna liczba wygranych
@@ -86,11 +92,11 @@ df %>%
   select(Team, Year) -> winners
 
 data.frame(rep(unique(winners$Team), length(winners[[1]]))) -> teamyyy
-data.frame(rep(unique(winners$Year), 1, each=6)) -> lata
+data.frame(rep(unique(winners$Year), 1, each=4)) -> lata
 
 teamyyy %>%
-  mutate(k=rep(unique(winners$Year), 1, each=6)) -> A
-winners[rep(seq_len(nrow(winners)), each = 6), ] -> B
+  mutate(k=rep(unique(winners$Year), 1, each=4)) -> A
+winners[rep(seq_len(nrow(winners)), each = 4), ] -> B
 
 A %>%
   mutate(wins=0) %>%
@@ -105,23 +111,14 @@ A %>%
   mutate(Year=mujstary) %>%
   arrange(Year) -> Koniec
 
-colnames(Koniec) <- c("Dru?yna", "Wins", "Year")
+colnames(Koniec) <- c("Drużyna", "Wins", "Year")
 
 Koniec %>%
-  ggplot(aes(x=Year, y=Wins, color=Dru?yna)) +
-  geom_line(size=1.2) +
-  labs(title = "Wykres liniowy najcz?stszych zwyci?zc?w Superbowl",
-       subtitle = "Lata 1967-2020",
+  ggplot(aes(x=Year, y=Wins)) +
+  geom_line(size=1.2, color = "#f7fcb9") +
+  labs(title = "Wykres liniowy najczęstszych zwycięzców Superbowl",
        x = "Rok",
-       y = "??czna liczba wygranych") +
-  geom_point()
-  
-
-
-
-
-
-
-
-
-
+       y = "Łączna liczba wygranych") +
+  facet_grid(rows = vars(Drużyna)) +
+  theme_dark_blue() +
+  theme(panel.border = element_rect(colour = "#d3d5df", fill=NA, size=1.2))
